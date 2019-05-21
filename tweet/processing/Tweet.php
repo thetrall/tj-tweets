@@ -127,13 +127,6 @@ class Tweet
             $data['user']['profile_image_url_bigger'] = str_replace('_normal', '_bigger', $data['user']['profile_image_url']);
             $data['escaped_text'] = preg_replace('/\[{2}([^\|]+)\|{2}(.+?)\|{2}([^\]]+)\]{2}/i', '<a href="$1" title="$2" class="tj-tweet-url" target="_blank">$3</a>', $data['parsed_text']);
             \Halley::send('lastTweets', $data);
-
-            if (in_array(mb_strtolower($data['user']['screen_name']), [ 'lookatme_news', 'd3ru', 'afisha', 'oldlentach', 'medialeaksru' ])) {
-                \Helper::sendSlackMessage($data['text'], '#mediawatch', [
-                    'username' => $data['user']['name'],
-                    'icon' => $data['user']['profile_image_url']
-                ]);
-            }
         }
     }
 

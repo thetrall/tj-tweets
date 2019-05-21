@@ -3,17 +3,25 @@
 
     $daemon = new Firehed\ProcessControl\Daemon;
 
+    class NotEnoughAttrsException extends \Exception {
+
+    }
+
     declare (ticks=1);
 
-    $daemon->setUser('root')
-    ->setPidFileLocation('/var/run/tj-twitter-users.pid')
-    ->setStdoutFileLocation(sys_get_temp_dir() . '/tj-twitter-users.log')
-    ->setStdErrFileLocation(sys_get_temp_dir() . '/tj-twitter-users-err.log')
+    $required_params = ['TWITTER_CONSUMER_KEY', 'TWITTER_CONSUMER_SECRET', 'TWITTER_USER_TOKEN', 'TWITTER_SECRET_KEY'];
+
+    foreach ($required_params as $key) {
+        if (getenv($key) == null) throw new NotEnoughAttrsException("missing: $key");
+        define($key, getenv($key));
+    }
+
+    $daemon->setUser(get_current_user())
+    ->setPidFileLocation('./tj-twitter-users.pid')
+    ->setStdoutFileLocation('./logs/tj-twitter-users.log')
+    ->setStdErrFileLocation('./logs/tj-twitter-users-err.log')
     ->setProcessName('tj-twitter-users')
     ->autoRun();
-
-    define('TWITTER_CONSUMER_KEY', 'app key'); // changeme
-    define('TWITTER_CONSUMER_SECRET', 'app secret'); // changeme
 
     class FilterTrackConsumer extends OauthPhirehose
     {
@@ -84,6 +92,6 @@
         }
     }
 
-    $sc = new FilterTrackConsumer('user token', 'user secert key', Phirehose::METHOD_FILTER);
+    $sc = new FilterTrackConsumer(TWITTER_USER_TOKEN, TWITTER_SECRET_KEY, Phirehose::METHOD_FILTER);
     $sc->setFollow($sc->getTrackIds());
     $sc->consume();
